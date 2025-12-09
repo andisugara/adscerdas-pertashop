@@ -7,18 +7,20 @@ use App\Models\DailyReport;
 use App\Models\TankAddition;
 use App\Models\Expense;
 use App\Models\Deposit;
+use App\Models\Salary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        $filter = $request->get('filter', 'daily');
-        $date = $request->get('date', now()->format('Y-m-d'));
-        $month = $request->get('month', now()->format('Y-m'));
-        $year = $request->get('year', now()->format('Y'));
+        // Jika operator, tampilkan halaman sederhana
+        if (Auth::user()->isOperator()) {
+            return view('dashboard.operator');
+        }
 
         $setting = Setting::first();
 
@@ -27,23 +29,38 @@ class DashboardController extends Controller
                 ->with('error', 'Silakan atur konfigurasi pertashop terlebih dahulu');
         }
 
-        $data = [
-            'setting' => $setting,
-            'filter' => $filter,
-            'date' => $date,
-            'month' => $month,
-            'year' => $year,
-        ];
+        // Get month from request or use current month
+        $month = $request->get('month', now()->format('Y-m'));
 
-        if ($filter === 'daily') {
-            $data = array_merge($data, $this->getDailyReport($date, $setting));
-        } elseif ($filter === 'monthly') {
-            $data = array_merge($data, $this->getMonthlyReport($month, $setting));
-        } elseif ($filter === 'yearly') {
-            $data = array_merge($data, $this->getYearlyReport($year, $setting));
+        // Summary bulan yang dipilih
+        $monthlyData = $this->getMonthlyReport($month, $setting);
+
+        // Data 7 hari terakhir untuk grafik
+        $last7Days = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $date = now()->subDays($i)->format('Y-m-d');
+            $reports = DailyReport::whereDate('tanggal', $date)->get();
+
+            if ($reports->count() > 0) {
+                $ta = $reports->first()->totalisator_awal;
+                $tak = $reports->last()->totalisator_akhir;
+                $sales = $tak - $ta;
+            } else {
+                $sales = 0;
+            }
+
+            $last7Days[] = [
+                'date' => $date,
+                'sales' => $sales,
+            ];
         }
 
-        return view('dashboard.index', $data);
+        return view('dashboard.index', [
+            'setting' => $setting,
+            'month' => $month,
+            'monthlyData' => $monthlyData,
+            'last7Days' => $last7Days,
+        ]);
     }
 
     private function getDailyReport($date, $setting)
@@ -142,7 +159,11 @@ class DashboardController extends Controller
         $losesRp = $totalLosesLiter * $setting->hpp_per_liter;
         $marginKotor = ($totalSalesLiter * $setting->harga_jual) - $hppRp + $losesRp;
         $zakat = $marginKotor * 0.025;
-        $gaji = 0; // To be implemented
+
+        // Get gaji for this month from salaries table
+        $salaryRecord = Salary::where('bulan', $month)->first();
+        $gaji = $salaryRecord ? $salaryRecord->jumlah : 0;
+
         $profit = $marginKotor - $expenses - $zakat - $gaji;
 
         $penjualan = $totalSalesLiter;
@@ -166,6 +187,7 @@ class DashboardController extends Controller
             'marginKotor' => $marginKotor,
             'operasional' => $expenses,
             'zakat' => $zakat,
+            'gaji' => $gaji,
             'profit' => $profit,
             'pembelian' => $pembelian,
             'penjualan' => $penjualan,
@@ -221,7 +243,11 @@ class DashboardController extends Controller
         $losesRp = $totalLosesLiter * $setting->hpp_per_liter;
         $marginKotor = ($totalSalesLiter * $setting->harga_jual) - $hppRp + $losesRp;
         $zakat = $marginKotor * 0.025;
-        $gaji = 0;
+
+        // Get gaji for this year from salaries table
+        $yearSalaries = Salary::where('bulan', 'like', $year . '-%')->sum('jumlah');
+        $gaji = $yearSalaries;
+
         $profit = $marginKotor - $expenses - $zakat - $gaji;
 
         $penjualan = $totalSalesLiter;
@@ -245,6 +271,7 @@ class DashboardController extends Controller
             'marginKotor' => $marginKotor,
             'operasional' => $expenses,
             'zakat' => $zakat,
+            'gaji' => $gaji,
             'profit' => $profit,
             'pembelian' => $pembelian,
             'penjualan' => $penjualan,

@@ -180,7 +180,12 @@ License: For each use you must have a valid license purchased only from above li
                                         <!--end::Menu separator-->
                                         <!--begin::Menu item-->
                                         <div class="menu-item px-5">
-                                            <a href="{{ route('logout') }}" class="menu-link px-5">Sign Out</a>
+                                            <form method="POST" action="{{ route('logout') }}" class="d-inline">
+                                                @csrf
+                                                <button type="submit"
+                                                    class="menu-link px-5 btn btn-link text-start w-100 p-0"
+                                                    style="text-decoration: none; color: inherit;">Sign Out</button>
+                                            </form>
                                         </div>
                                         <!--end::Menu item-->
                                     </div>

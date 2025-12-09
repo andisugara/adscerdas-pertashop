@@ -60,9 +60,12 @@ class TankAdditionController extends Controller
     {
         $validated = $request->validate([
             'tanggal' => 'required|date',
-            'jumlah_liter' => 'required|numeric|min:0',
+            'jumlah_liter' => 'required|string',
             'keterangan' => 'nullable|string',
         ]);
+
+        // Convert format Indonesia ke database format
+        $validated['jumlah_liter'] = $this->parseDecimal($validated['jumlah_liter']);
 
         $tankAddition = TankAddition::findOrFail($id);
         $tankAddition->update($validated);

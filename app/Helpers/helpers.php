@@ -35,28 +35,51 @@ if (!function_exists('getMenu')) {
                 'roles' => ['owner', 'operator'],
             ],
             [
+                'title' => 'Laporan',
+                'icon' => 'ki-chart-line',
+                'roles' => ['owner'], // Only owner can view reports
+                'children' => [
+                    [
+                        'title' => 'Laporan',
+                        'route' => 'reports.index',
+                        'roles' => ['owner'],
+                    ],
+                    [
+                        'title' => 'Laporan Harian',
+                        'route' => 'reports.daily',
+                        'roles' => ['owner'],
+                    ],
+                ],
+            ],
+            [
                 'title' => 'Laporan Harian',
                 'route' => 'daily-reports.index',
                 'icon' => 'ki-document',
-                'roles' => ['owner', 'operator'],
+                'roles' => ['owner', 'operator'], // Both can input daily reports
             ],
             [
                 'title' => 'Penambahan Tangki',
                 'route' => 'tank-additions.index',
                 'icon' => 'ki-abstract-26',
-                'roles' => ['owner', 'operator'],
+                'roles' => ['owner', 'operator'], // Both can input tank additions
             ],
             [
                 'title' => 'Pengeluaran',
                 'route' => 'expenses.index',
                 'icon' => 'ki-wallet',
-                'roles' => ['owner', 'operator'],
+                'roles' => ['owner'], // Owner only
             ],
             [
                 'title' => 'Setoran',
                 'route' => 'deposits.index',
                 'icon' => 'ki-dollar',
-                'roles' => ['owner', 'operator'],
+                'roles' => ['owner'], // Owner only
+            ],
+            [
+                'title' => 'Gaji',
+                'route' => 'salaries.index',
+                'icon' => 'ki-wallet',
+                'roles' => ['owner'], // Owner only
             ],
         ];
 

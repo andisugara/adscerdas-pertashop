@@ -18,11 +18,7 @@ class DailyReportController extends Controller
             $query->whereDate('tanggal', $request->tanggal);
         }
 
-        if (Auth::user()->isOperator()) {
-            $query->where('user_id', Auth::id());
-        }
-
-        $reports = $query->latest('tanggal')->paginate(15);
+        $reports = $query->latest('tanggal')->latest('shift_id')->paginate(15);
 
         return view('daily-reports.index', compact('reports'));
     }
@@ -54,8 +50,8 @@ class DailyReportController extends Controller
 
         $validated['user_id'] = Auth::id();
 
-        $exists = DailyReport::where('user_id', $validated['user_id'])
-            ->where('shift_id', $validated['shift_id'])
+        // Validasi: Cek duplikat berdasarkan shift dan tanggal saja (tanpa user_id)
+        $exists = DailyReport::where('shift_id', $validated['shift_id'])
             ->whereDate('tanggal', $validated['tanggal'])
             ->exists();
 
@@ -64,8 +60,7 @@ class DailyReportController extends Controller
         }
 
         // Validasi: Totalisator Awal harus sama dengan Totalisator Akhir shift sebelumnya
-        $previousReport = DailyReport::where('user_id', $validated['user_id'])
-            ->whereDate('tanggal', $validated['tanggal'])
+        $previousReport = DailyReport::whereDate('tanggal', $validated['tanggal'])
             ->where('shift_id', '<', $validated['shift_id'])
             ->orderBy('shift_id', 'desc')
             ->first();
@@ -96,11 +91,6 @@ class DailyReportController extends Controller
     public function edit(string $id)
     {
         $dailyReport = DailyReport::findOrFail($id);
-
-        if (Auth::user()->isOperator() && $dailyReport->user_id !== Auth::id()) {
-            abort(403, 'Anda tidak memiliki akses untuk mengedit laporan ini.');
-        }
-
         $shifts = Shift::where('aktif', true)->orderBy('urutan')->get();
         $setting = Setting::first();
 
@@ -110,10 +100,6 @@ class DailyReportController extends Controller
     public function update(Request $request, string $id)
     {
         $dailyReport = DailyReport::findOrFail($id);
-
-        if (Auth::user()->isOperator() && $dailyReport->user_id !== Auth::id()) {
-            abort(403, 'Anda tidak memiliki akses untuk mengedit laporan ini.');
-        }
 
         $validated = $request->validate([
             'shift_id' => 'required|exists:shifts,id',
@@ -131,8 +117,7 @@ class DailyReportController extends Controller
         $validated['stok_akhir_mm'] = $this->parseDecimal($validated['stok_akhir_mm']);
 
         // Validasi: Totalisator Awal harus sama dengan Totalisator Akhir shift sebelumnya
-        $previousReport = DailyReport::where('user_id', $dailyReport->user_id)
-            ->whereDate('tanggal', $validated['tanggal'])
+        $previousReport = DailyReport::whereDate('tanggal', $validated['tanggal'])
             ->where('shift_id', '<', $validated['shift_id'])
             ->where('id', '!=', $dailyReport->id)
             ->orderBy('shift_id', 'desc')
