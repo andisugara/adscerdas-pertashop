@@ -23,12 +23,43 @@ class DailyReportController extends Controller
         return view('daily-reports.index', compact('reports'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $shifts = Shift::where('aktif', true)->orderBy('urutan')->get();
         $setting = Setting::first();
 
-        return view('daily-reports.create', compact('shifts', 'setting'));
+        // Get default values from previous report
+        $defaultTotalisatorAwal = null;
+        $defaultStokAwal = null;
+
+        // Jika ada shift_id dan tanggal dari request (saat user pilih shift)
+        if ($request->has('shift_id') && $request->has('tanggal')) {
+            $shiftId = $request->shift_id;
+            $tanggal = $request->tanggal;
+
+            // Cari laporan shift sebelumnya di tanggal yang sama
+            $previousReport = DailyReport::whereDate('tanggal', $tanggal)
+                ->where('shift_id', '<', $shiftId)
+                ->orderBy('shift_id', 'desc')
+                ->first();
+
+            if ($previousReport) {
+                $defaultTotalisatorAwal = $previousReport->totalisator_akhir;
+                $defaultStokAwal = $previousReport->stok_akhir_mm;
+            }
+        } else {
+            // Jika tidak ada request, ambil dari laporan terakhir secara keseluruhan
+            $lastReport = DailyReport::orderBy('tanggal', 'desc')
+                ->orderBy('shift_id', 'desc')
+                ->first();
+
+            if ($lastReport) {
+                $defaultTotalisatorAwal = $lastReport->totalisator_akhir;
+                $defaultStokAwal = $lastReport->stok_akhir_mm;
+            }
+        }
+
+        return view('daily-reports.create', compact('shifts', 'setting', 'defaultTotalisatorAwal', 'defaultStokAwal'));
     }
 
     public function store(Request $request)

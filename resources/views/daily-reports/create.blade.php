@@ -14,7 +14,8 @@
                 <div class="row mb-6">
                     <label class="col-lg-3 col-form-label required fw-semibold fs-6">Tanggal</label>
                     <div class="col-lg-9">
-                        <input type="date" name="tanggal" class="form-control @error('tanggal') is-invalid @enderror"
+                        <input type="date" name="tanggal" id="tanggal"
+                            class="form-control @error('tanggal') is-invalid @enderror"
                             value="{{ old('tanggal', date('Y-m-d')) }}" required>
                         @error('tanggal')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -25,7 +26,8 @@
                 <div class="row mb-6">
                     <label class="col-lg-3 col-form-label required fw-semibold fs-6">Shift</label>
                     <div class="col-lg-9">
-                        <select name="shift_id" class="form-select @error('shift_id') is-invalid @enderror" required>
+                        <select name="shift_id" id="shift_id" class="form-select @error('shift_id') is-invalid @enderror"
+                            required>
                             <option value="">Pilih Shift</option>
                             @foreach ($shifts as $shift)
                                 <option value="{{ $shift->id }}" {{ old('shift_id') == $shift->id ? 'selected' : '' }}>
@@ -46,9 +48,10 @@
                 <div class="row mb-6">
                     <label class="col-lg-3 col-form-label required fw-semibold fs-6">Totalisator Awal (TA)</label>
                     <div class="col-lg-9">
-                        <input type="text" name="totalisator_awal"
+                        <input type="text" name="totalisator_awal" id="totalisator_awal"
                             class="form-control decimal-input @error('totalisator_awal') is-invalid @enderror"
-                            value="{{ old('totalisator_awal') }}" placeholder="Contoh: 1.437.356,371" required>
+                            value="{{ old('totalisator_awal', $defaultTotalisatorAwal ? number_format($defaultTotalisatorAwal, 3, ',', '.') : '') }}"
+                            placeholder="Contoh: 1.437.356,371" required>
                         <div class="form-text">Format: 1.437.356,371 (gunakan koma untuk desimal, maksimal 3 digit desimal)
                         </div>
                         @error('totalisator_awal')
@@ -77,9 +80,10 @@
                 <div class="row mb-6">
                     <label class="col-lg-3 col-form-label required fw-semibold fs-6">Stok Awal (MM)</label>
                     <div class="col-lg-9">
-                        <input type="text" name="stok_awal_mm"
+                        <input type="text" name="stok_awal_mm" id="stok_awal_mm"
                             class="form-control decimal-input @error('stok_awal_mm') is-invalid @enderror"
-                            value="{{ old('stok_awal_mm') }}" placeholder="Contoh: 1.200,50" required>
+                            value="{{ old('stok_awal_mm', $defaultStokAwal ? number_format($defaultStokAwal, 2, ',', '.') : '') }}"
+                            placeholder="Contoh: 1.200,50" required>
                         <div class="form-text">Stok dalam satuan MM (milimeter). Format: 1.200,50</div>
                         @error('stok_awal_mm')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -116,6 +120,48 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const tanggalInput = document.getElementById('tanggal');
+            const shiftSelect = document.getElementById('shift_id');
+            const totalisatorAwalInput = document.getElementById('totalisator_awal');
+            const stokAwalInput = document.getElementById('stok_awal_mm');
+
+            // Function untuk load default values dari server
+            function loadDefaultValues() {
+                const tanggal = tanggalInput.value;
+                const shiftId = shiftSelect.value;
+
+                if (tanggal && shiftId) {
+                    // Fetch data dari server
+                    fetch(`{{ route('daily-reports.create') }}?tanggal=${tanggal}&shift_id=${shiftId}`, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(response => response.text())
+                        .then(html => {
+                            // Parse HTML response untuk ambil nilai default
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(html, 'text/html');
+
+                            const newTotalisatorValue = doc.getElementById('totalisator_awal')?.value;
+                            const newStokValue = doc.getElementById('stok_awal_mm')?.value;
+
+                            if (newTotalisatorValue && totalisatorAwalInput.value === '') {
+                                totalisatorAwalInput.value = newTotalisatorValue;
+                            }
+
+                            if (newStokValue && stokAwalInput.value === '') {
+                                stokAwalInput.value = newStokValue;
+                            }
+                        })
+                        .catch(error => console.error('Error loading default values:', error));
+                }
+            }
+
+            // Event listeners untuk tanggal dan shift
+            tanggalInput.addEventListener('change', loadDefaultValues);
+            shiftSelect.addEventListener('change', loadDefaultValues);
+
             // Format input decimal dengan separator ribuan
             const decimalInputs = document.querySelectorAll('.decimal-input');
 
