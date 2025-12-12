@@ -24,6 +24,11 @@ class DemoOrganizationSeeder extends Seeder
             'phone' => '081234567890',
             'email' => 'demo@pertashop.com',
             'address' => 'Jl. Demo No. 123, Jakarta',
+            'harga_jual' => 12000,
+            'rumus' => 2.09,
+            'hpp_per_liter' => 11500,
+            'stok_awal' => 5000.000,
+            'totalisator_awal' => 10000.000,
             'is_active' => true,
         ]);
 
