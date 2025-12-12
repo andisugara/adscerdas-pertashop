@@ -4,12 +4,31 @@ namespace App\Http\Controllers;
 
 use App\Models\Setting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class SettingController extends Controller
 {
     public function index()
     {
-        $setting = Setting::first();
+        $user = Auth::user();
+        $organizationId = $user->active_organization_id;
+
+        $setting = Setting::where('organization_id', $organizationId)->first();
+
+        if (!$setting) {
+            // Create default setting if not exists for this organization
+            $organization = $user->activeOrganization;
+            $setting = Setting::create([
+                'organization_id' => $organizationId,
+                'nama_pertashop' => $organization->name,
+                'kode_pertashop' => 'PTS' . rand(100, 999),
+                'alamat' => $organization->address ?? '',
+                'harga_jual' => 12000,
+                'rumus' => 2.09,
+                'hpp_per_liter' => 11500,
+            ]);
+        }
+
         return view('settings.index', compact('setting'));
     }
 
@@ -34,7 +53,7 @@ class SettingController extends Controller
      */
     public function show(string $id)
     {
-        //
+        return redirect()->route('settings.index');
     }
 
     /**
@@ -42,7 +61,7 @@ class SettingController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        return redirect()->route('settings.index');
     }
 
     public function update(Request $request, string $id)
@@ -56,7 +75,8 @@ class SettingController extends Controller
             'hpp_per_liter' => 'required|numeric|min:0',
         ]);
 
-        $setting = Setting::findOrFail($id);
+        $organizationId = Auth::user()->active_organization_id;
+        $setting = Setting::where('organization_id', $organizationId)->findOrFail($id);
         $setting->update($validated);
 
         return redirect()->route('settings.index')

@@ -70,6 +70,12 @@ if (!function_exists('getMenu')) {
                 'roles' => ['owner'], // Owner only
             ],
             [
+                'title' => 'Cetak Struk',
+                'route' => 'receipts.index',
+                'icon' => 'ki-printer',
+                'roles' => ['owner', 'operator'], // Both owner and operator can print receipts
+            ],
+            [
                 'title' => 'Setoran',
                 'route' => 'deposits.index',
                 'icon' => 'ki-dollar',
@@ -84,6 +90,24 @@ if (!function_exists('getMenu')) {
         ];
 
         if ($user && $user->isOwner()) {
+            $menu[] = [
+                'title' => 'Kelola Pertashop',
+                'route' => 'organizations.index',
+                'icon' => 'ki-home-2',
+                'roles' => ['owner'],
+            ];
+            $menu[] = [
+                'title' => 'Kelola Operator',
+                'route' => 'operators.index',
+                'icon' => 'ki-people',
+                'roles' => ['owner'],
+            ];
+            $menu[] = [
+                'title' => 'My Subscription',
+                'route' => 'subscriptions.index',
+                'icon' => 'ki-price-tag',
+                'roles' => ['owner'],
+            ];
             $menu[] = [
                 'title' => 'Pengaturan',
                 'icon' => 'ki-gear',

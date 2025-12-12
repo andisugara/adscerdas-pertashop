@@ -1,33 +1,251 @@
-saya ingin membuat platform laporan pengeluaran dan pemasukan pertashop
+# Pertashop SaaS Platform 🚀
 
-user ada pengelolaan pengguna(untuk pekerja/operator shift shift an,shift bisa pagi dan siang atau pagi,siang,malam (2/3 shift perhari tergantung pertashop/owner)) dan saya sebagai owener
+Platform **SaaS Multi-Tenant** untuk manajemen SPBU (Stasiun Pengisian Bahan Bakar Umum) dengan sistem subscription, payment gateway, dan superadmin panel.
 
-fitur
-1.setting -> ada setting harga bbm /harga_jual (ex: 12000) dan rumus (2.09), HPP/Liter (ex:11500)
-nama pertashop,kode pertashop,alamat
-2.Rekap Harian tangki
--masing masing operator ketika masuk akan input totalisator awal,totalisator akhir,stok
-totalisator = adalah jumlah penjualan bbm
-stok = jumlah bbm di tangki
-TA = totalisator awal
-TAK = totalisator Akhir
-SA = Stok Awal
-SAL = Stok Awal Liter
-SAK = Stok Akhir
-SAKL = Stok Akhir Liter
-LL = Loses Liter (jumlah kehilangan bbm,biasanya kan klo nambah ada penguapan)
-LR = Loses Rupiah (Jumlah kehilangan bbm versi rupiah)
-M/H = Margin / Hari
+## 🎯 Overview
 
-3.Penambahan Tangki
-jika ada tambahan/pembelian BBM (Delivery Order),maka akan masuk ke Stok
-DO = Delivery Order (Dalam Liter)
+Pertashop adalah platform cloud-based yang memungkinkan **multiple pemilik SPBU** untuk:
 
-misal untuk report harian di owner:
-pegawai a : shift pagi = TA = 1000,TAK = 900, SA = 1100 (MM), SAK = 500 (MM), DO = 2000
-pegawai b : shift siang = TA = 900,TAK = 750, SA = 500 (MM), SAK = 162 (MM)
+-   Mengelola multiple pertashop dalam satu akun
+-   Subscribe dengan trial 14 hari gratis
+-   Bayar subscription via Manual Transfer atau Duitku
+-   Manage operator dan shift secara terpisah per pertashop
+-   Laporan harian otomatis dengan perhitungan margin & losses
 
-maka nanti akan ada laporan harian di owner jadi 1 row,namun ada chevron jika di klik muncul detail masing masing shift (list table tree datatable,dibawahnya detail dari masing masing pegawai)
+## ✨ Key Features
+
+### 🏢 Multi-Tenant Architecture
+
+-   **1 Owner → Multiple Pertashops**: Satu owner bisa kelola banyak SPBU
+-   **Data Isolation**: Setiap pertashop punya data terpisah
+-   **Organization Switcher**: Ganti pertashop aktif di navbar
+-   **Role-based Access**: Superadmin, Owner, Operator
+
+### 💳 Subscription System
+
+-   **Trial Period**: 14 hari gratis untuk pertashop baru
+-   **Flexible Plans**: Monthly (Rp 100,000) atau Yearly (Rp 1,000,000)
+-   **Dual Payment**: Manual transfer atau Duitku payment gateway
+-   **Auto-Approval**: Duitku payments langsung aktif
+-   **Manual Approval**: Upload bukti transfer → Superadmin approve
+
+### 👨‍💼 Superadmin Panel
+
+-   Dashboard dengan statistics
+-   Manage semua organizations
+-   Approve/reject subscriptions
+-   View payment proofs
+-   Configure system settings & pricing
+
+### 📊 Operational Features
+
+1. **Settings** → Harga BBM, Rumus, HPP, Nama & Alamat Pertashop
+2. **Shift Management** → 2-3 shift per hari (Pagi/Siang/Malam)
+3. **Daily Reports** → Totalisator, Stok, Margin, Losses per shift
+4. **Tank Additions** → Input Delivery Order (DO)
+5. **Expenses** → Pengeluaran operasional
+6. **Deposits** → Setoran ke owner
+7. **Salaries** → Gaji karyawan
+
+### Installation
+
+```bash
+git clone <repository-url>
+cd adscerdas-pertashop
+composer install
+npm install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate:fresh --seed
+php artisan storage:link
+npm run build
+php artisan serve
+```
+
+### Default Accounts
+
+**Superadmin**:
+
+-   Email: `superadmin@pertashop.com`
+-   Password: `password`
+-   Access: `/superadmin/dashboard`
+
+**Demo Owner**:
+
+-   Email: `owner@pertashop.com`
+-   Password: `password`
+
+**Demo Operator**:
+
+-   Email: `operator@pertashop.com`
+-   Password: `password`
+
+## 📚 Documentation
+
+-   **[DEPLOYMENT.md](DEPLOYMENT.md)** - Installation & deployment guide
+-   **[DUITKU_INTEGRATION.md](DUITKU_INTEGRATION.md)** - Duitku payment setup
+-   **[SUMMARY.md](SUMMARY.md)** - Complete feature summary & checklist
+
+## 🏗️ Architecture
+
+### Multi-Tenancy Pattern
+
+-   **Shared Database** dengan `organization_id` discrimination
+-   **Global Scope** untuk auto-filter queries
+-   **Trait-based** assignment untuk DRY code
+-   **Middleware** untuk subscription & access control
+
+### Tech Stack
+
+-   **Laravel 12.0** - Backend framework
+-   **MySQL 8.0** - Database
+-   **Tailwind CSS** - UI styling
+-   **Guzzle HTTP** - Duitku API integration
+-   **Vite** - Asset bundling
+
+## 📊 Database Schema
+
+### Core Tables
+
+-   `organizations` - SPBU entities
+-   `subscriptions` - Payment & subscription records
+-   `organization_user` - Many-to-many with roles
+-   `system_settings` - Global configuration
+-   `users` - All users (superadmin, owners, operators)
+
+### Operational Tables (per organization)
+
+-   `settings` - BBM pricing & formulas
+-   `shifts` - Shift configurations
+-   `daily_reports` - Daily fuel reports per shift
+-   `tank_additions` - Delivery orders (DO)
+-   `expenses` - Operational costs
+-   `deposits` - Owner deposits
+-   `salaries` - Employee salaries
+
+## 🔐 Security
+
+-   **Data Isolation**: Organization-based filtering
+-   **Role-based Access**: Superadmin/Owner/Operator
+-   **Subscription Check**: Middleware validates access
+-   **Trial Period**: Auto-expires after 14 days
+-   **Payment Verification**: Manual approval or Duitku callback
+
+## 🎯 User Workflows
+
+### Owner Registration
+
+1. Visit `/register/owner`
+2. Fill personal + organization info
+3. Choose Trial (14 days free)
+4. Auto-login → Start using immediately
+
+### Owner Subscription
+
+1. Trial expires → Redirected to subscription page
+2. Choose Monthly or Yearly plan
+3. Select payment method:
+    - **Manual**: Upload transfer proof → Wait approval
+    - **Duitku**: Auto payment → Instant activation
+4. Access granted after payment confirmed
+
+### Superadmin Management
+
+1. Login → `/superadmin/dashboard`
+2. View pending subscriptions
+3. Click subscription → View payment proof
+4. Approve or Reject → User gets access immediately
+
+## 📱 Features Detail
+
+### Daily Report Calculation
+
+```
+TA = Totalisator Awal
+TAK = Totalisator Akhir
+SA = Stok Awal (MM)
+SAK = Stok Akhir (MM)
+DO = Delivery Order (Liter)
+
+SAL = SA / Rumus (Stok Awal Liter)
+SAKL = SAK / Rumus (Stok Akhir Liter)
+Penjualan = TAK - TA
+LL = (SAL + DO) - SAKL - Penjualan (Loses Liter)
+LR = LL × HPP (Loses Rupiah)
+M/H = Penjualan × (Harga Jual - HPP) (Margin per Hari)
+```
+
+### Organization Switcher
+
+-   Dropdown di navbar menampilkan semua pertashop owner
+-   Click organization → Switch context
+-   Semua data auto-filtered ke pertashop aktif
+-   Settings, shifts, reports terpisah per organization
+
+## 🚀 Deployment
+
+See **[DEPLOYMENT.md](DEPLOYMENT.md)** for complete production deployment guide.
+
+### Quick Production Setup
+
+1. Configure `.env` (database, mail, etc)
+2. Run migrations & seeders
+3. Change default passwords
+4. Setup Duitku credentials (optional)
+5. Configure SSL/HTTPS
+6. Setup backups
+
+## 🔧 Configuration
+
+### System Settings (Superadmin)
+
+Path: `/superadmin/settings`
+
+-   Payment Gateway (Manual/Duitku)
+-   Trial Days (default: 14)
+-   Monthly Price (default: Rp 100,000)
+-   Yearly Price (default: Rp 1,000,000)
+-   Duitku Credentials
+
+### Per-Organization Settings
+
+Path: `/settings`
+
+-   Harga Jual BBM
+-   Rumus (density)
+-   HPP per Liter
+-   Nama Pertashop
+-   Alamat
+
+## 📞 Support
+
+For issues, questions, or feature requests:
+
+1. Check documentation files
+2. Review logs: `storage/logs/laravel.log`
+3. Contact development team
+
+## 📄 License
+
+Proprietary - All rights reserved
+
+## 🎉 Version
+
+**v2.0.0** - SaaS Multi-Tenant Platform  
+Release Date: December 9, 2025
+
+### Changelog
+
+-   ✨ Multi-tenant architecture
+-   ✨ Subscription management
+-   ✨ Dual payment gateway
+-   ✨ Superadmin panel
+-   ✨ Organization switcher
+-   ✨ Trial period system
+
+---
+
+**Built with ❤️ for Indonesian SPBU owners**
 
 list rownya bakal jadi gini :
 TA = 1000

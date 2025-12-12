@@ -23,6 +23,7 @@ class User extends Authenticatable
         'password',
         'role',
         'aktif',
+        'active_organization_id',
     ];
 
     /**
@@ -69,13 +70,58 @@ class User extends Authenticatable
         return $this->hasMany(Deposit::class);
     }
 
+    /**
+     * Get the organizations that the user belongs to.
+     */
+    public function organizations()
+    {
+        return $this->belongsToMany(Organization::class, 'organization_user')
+            ->withPivot('role', 'is_active')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the active organization.
+     */
+    public function activeOrganization()
+    {
+        return $this->belongsTo(Organization::class, 'active_organization_id');
+    }
+
+    /**
+     * Alias for activeOrganization (for compatibility).
+     */
+    public function organization()
+    {
+        return $this->belongsTo(Organization::class, 'active_organization_id');
+    }
+
+    /**
+     * Switch to different organization.
+     */
+    public function switchOrganization($organizationId)
+    {
+        // Check if user has access to this organization
+        if ($this->organizations()->where('organizations.id', $organizationId)->exists()) {
+            $this->update(['active_organization_id' => $organizationId]);
+            return true;
+        }
+        return false;
+    }
+
+    public function isSuperadmin()
+    {
+        return $this->role === 'superadmin';
+    }
+
     public function isOwner()
     {
-        return $this->role === 'owner';
+        // Check if user has 'owner' role in any organization
+        return $this->organizations()->wherePivot('role', 'owner')->exists();
     }
 
     public function isOperator()
     {
-        return $this->role === 'operator';
+        return $this->organizations()->wherePivot('role', 'operator')->exists();
     }
 }

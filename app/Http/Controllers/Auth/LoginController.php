@@ -22,6 +22,14 @@ class LoginController extends Controller
 
         if (Auth::attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
+
+            $user = Auth::user();
+
+            // Redirect based on role
+            if ($user->role === 'superadmin') {
+                return redirect()->intended(route('superadmin.dashboard'));
+            }
+
             return redirect()->intended(route('dashboard'));
         }
 

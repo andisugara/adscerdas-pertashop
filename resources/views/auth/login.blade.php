@@ -67,9 +67,9 @@
                                 </div>
 
                                 <div class="text-gray-500 text-center fw-semibold fs-6">
-                                    <p class="mb-1"><strong>Demo Accounts:</strong></p>
-                                    <p class="mb-1">Owner: owner@pertashop.com / password</p>
-                                    <p class="mb-0">Operator: operator1@pertashop.com / password</p>
+                                    Belum punya akun?
+                                    <a href="{{ route('owner.register.form') }}" class="link-primary fw-bold">Daftar
+                                        Gratis</a>
                                 </div>
                             </form>
                         </div>

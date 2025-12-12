@@ -140,6 +140,59 @@ License: For each use you must have a valid license purchased only from above li
                                     <!--end::Menu-->
                                 </div>
                                 <!--end::Theme mode-->
+
+                                <!--begin::Organization switcher-->
+                                @if (Auth::check() && !Auth::user()->isSuperadmin() && Auth::user()->active_organization_id)
+                                    <div class="app-navbar-item ms-1 ms-md-4">
+                                        <a href="#" class="btn btn-sm btn-flex btn-light-primary"
+                                            data-kt-menu-trigger="{default:'click', lg: 'hover'}"
+                                            data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
+                                            <i class="ki-duotone ki-shop fs-3 me-2">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                                <span class="path3"></span>
+                                                <span class="path4"></span>
+                                                <span class="path5"></span>
+                                            </i>
+                                            <span
+                                                class="d-none d-md-inline">{{ Auth::user()->activeOrganization->name ?? 'Select Org' }}</span>
+                                            <i class="ki-duotone ki-down fs-5 ms-2"></i>
+                                        </a>
+
+                                        <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-250px py-4"
+                                            data-kt-menu="true">
+                                            <div class="menu-item px-3">
+                                                <div class="menu-content text-muted pb-2 px-3 fs-7 text-uppercase">
+                                                    Your Organizations
+                                                </div>
+                                            </div>
+
+                                            @foreach (Auth::user()->organizations as $org)
+                                                <div class="menu-item px-3">
+                                                    <form action="{{ route('organizations.switch') }}" method="POST">
+                                                        @csrf
+                                                        <input type="hidden" name="organization_id"
+                                                            value="{{ $org->id }}">
+                                                        <button type="submit"
+                                                            class="menu-link px-3 {{ Auth::user()->active_organization_id == $org->id ? 'active' : '' }}">
+                                                            <span class="menu-icon">
+                                                                @if (Auth::user()->active_organization_id == $org->id)
+                                                                    <i
+                                                                        class="ki-duotone ki-check fs-2 text-success"></i>
+                                                                @else
+                                                                    <i class="ki-duotone ki-shop fs-2"></i>
+                                                                @endif
+                                                            </span>
+                                                            <span class="menu-title">{{ $org->name }}</span>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+                                <!--end::Organization switcher-->
+
                                 <!--begin::User menu-->
                                 <div class="app-navbar-item ms-1 ms-md-4" id="kt_header_user_menu_toggle">
                                     <!--begin::Menu wrapper-->
