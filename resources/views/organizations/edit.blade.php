@@ -123,6 +123,50 @@
                     </div>
                 </div>
 
+                <div class="separator my-6"></div>
+
+                <h4 class="mb-5">Data Awal Pertashop</h4>
+
+                @if ($hasDailyReports)
+                    <div class="alert alert-warning d-flex align-items-center">
+                        <i class="ki-outline ki-information-5 fs-2x me-4"></i>
+                        <div>
+                            <strong>Perhatian!</strong> Data awal tidak dapat diubah karena sudah ada laporan harian.
+                            Jika perlu mengubah, hapus semua laporan harian terlebih dahulu.
+                        </div>
+                    </div>
+                @endif
+
+                <div class="row mb-6">
+                    <label class="col-lg-3 col-form-label required fw-semibold fs-6">Stok Awal (Liter)</label>
+                    <div class="col-lg-9">
+                        <input type="text" name="stok_awal"
+                            class="form-control decimal-input @error('stok_awal') is-invalid @enderror"
+                            value="{{ old('stok_awal', $organization->stok_awal) }}" required
+                            placeholder="Contoh: 1500.750" {{ $hasDailyReports ? 'readonly' : '' }}>
+                        <div class="form-text">Stok BBM awal. Gunakan titik (.) untuk desimal (3 digit). Contoh: 1500.750
+                        </div>
+                        @error('stok_awal')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="row mb-6">
+                    <label class="col-lg-3 col-form-label required fw-semibold fs-6">Totalisator Awal (Liter)</label>
+                    <div class="col-lg-9">
+                        <input type="text" name="totalisator_awal"
+                            class="form-control decimal-input @error('totalisator_awal') is-invalid @enderror"
+                            value="{{ old('totalisator_awal', $organization->totalisator_awal) }}" required
+                            placeholder="Contoh: 5000.250" {{ $hasDailyReports ? 'readonly' : '' }}>
+                        <div class="form-text">Angka totalisator (total penjualan). Gunakan titik (.) untuk desimal (3
+                            digit). Contoh: 5000.250</div>
+                        @error('totalisator_awal')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
                 <div class="card-footer d-flex justify-content-between py-6 px-9">
                     <a href="{{ route('organizations.index') }}" class="btn btn-light">Batal</a>
                     <button type="submit" class="btn btn-primary">
@@ -133,3 +177,36 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        // Auto-convert comma to dot for decimal inputs
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.decimal-input:not([readonly])').forEach(input => {
+                input.addEventListener('blur', function() {
+                    // Replace comma with dot
+                    this.value = this.value.replace(/,/g, '.');
+
+                    // Remove multiple dots, keep only first one
+                    const parts = this.value.split('.');
+                    if (parts.length > 2) {
+                        this.value = parts[0] + '.' + parts.slice(1).join('');
+                    }
+
+                    // Ensure valid number
+                    if (this.value && !isNaN(this.value)) {
+                        this.value = parseFloat(this.value).toString();
+                    }
+                });
+
+                // Only allow numbers, dot, and comma
+                input.addEventListener('keypress', function(e) {
+                    const char = String.fromCharCode(e.which);
+                    if (!/[\d.,]/.test(char)) {
+                        e.preventDefault();
+                    }
+                });
+            });
+        });
+    </script>
+@endpush

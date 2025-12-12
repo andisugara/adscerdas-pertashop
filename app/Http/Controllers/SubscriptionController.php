@@ -66,10 +66,10 @@ class SubscriptionController extends Controller
         $paymentMethod = $validated['payment_method'];
 
         $price = $plan === 'monthly'
-            ? SystemSetting::get('monthly_price', 100000)
-            : SystemSetting::get('yearly_price', 1000000);
+            ? (int) SystemSetting::get('monthly_price', 100000)
+            : (int) SystemSetting::get('yearly_price', 1000000);
 
-        $duration = $plan === 'monthly' ? 30 : 365;
+        $duration = (int) ($plan === 'monthly' ? 30 : 365);
 
         $subscription = Subscription::create([
             'organization_id' => $organization->id,

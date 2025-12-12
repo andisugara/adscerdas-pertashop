@@ -163,6 +163,31 @@
                             </div>
                         </div>
 
+                        <!-- Initial Data -->
+                        <div class="section-title">
+                            <i class="bi bi-database me-2"></i>Data Awal Pertashop
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Stok Awal (Liter) <span class="text-danger">*</span></label>
+                                <input type="text" name="stok_awal"
+                                    class="form-control form-control-lg decimal-input"
+                                    value="{{ old('stok_awal', '0') }}" required placeholder="Contoh: 1000.500">
+                                <small class="text-muted">Stok BBM awal. Gunakan titik (.) untuk desimal (3 digit).
+                                    Contoh: 1500.750</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Totalisator Awal (Liter) <span
+                                        class="text-danger">*</span></label>
+                                <input type="text" name="totalisator_awal"
+                                    class="form-control form-control-lg decimal-input"
+                                    value="{{ old('totalisator_awal', '0') }}" required placeholder="Contoh: 5000.250">
+                                <small class="text-muted">Angka totalisator awal. Gunakan titik (.) untuk desimal (3
+                                    digit). Contoh: 5000.250</small>
+                            </div>
+                        </div>
+
                         <!-- Subscription Plan -->
                         <div class="section-title">
                             <i class="bi bi-credit-card me-2"></i>Pilih Paket Berlangganan
@@ -274,6 +299,35 @@
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script>
+            // Auto-convert comma to dot for decimal inputs
+            document.addEventListener('DOMContentLoaded', function() {
+                document.querySelectorAll('.decimal-input').forEach(input => {
+                    input.addEventListener('blur', function() {
+                        // Replace comma with dot
+                        this.value = this.value.replace(/,/g, '.');
+
+                        // Remove multiple dots, keep only first one
+                        const parts = this.value.split('.');
+                        if (parts.length > 2) {
+                            this.value = parts[0] + '.' + parts.slice(1).join('');
+                        }
+
+                        // Ensure valid number
+                        if (this.value && !isNaN(this.value)) {
+                            this.value = parseFloat(this.value).toString();
+                        }
+                    });
+
+                    // Only allow numbers, dot, and comma
+                    input.addEventListener('keypress', function(e) {
+                        const char = String.fromCharCode(e.which);
+                        if (!/[\d.,]/.test(char)) {
+                            e.preventDefault();
+                        }
+                    });
+                });
+            });
+
             function selectPlan(plan, element) {
                 // Remove active class from all plan options
                 document.querySelectorAll('.plan-option').forEach(el => el.classList.remove('active'));

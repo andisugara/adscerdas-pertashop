@@ -22,15 +22,23 @@ class OrganizationController extends Controller
 
     public function store(Request $request)
     {
+        // Normalize decimal inputs (convert comma to dot)
+        $request->merge([
+            'stok_awal' => str_replace(',', '.', $request->stok_awal),
+            'totalisator_awal' => str_replace(',', '.', $request->totalisator_awal),
+        ]);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'kode_pertashop' => 'required|string|max:50|unique:organizations',
+            'kode_pertashop' => 'required|string|max:50|unique:organizations,kode_pertashop',
             'phone' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
             'address' => 'nullable|string',
             'harga_jual' => 'required|numeric|min:0',
             'rumus' => 'required|numeric|min:0',
             'hpp_per_liter' => 'required|numeric|min:0',
+            'stok_awal' => 'required|numeric|min:0',
+            'totalisator_awal' => 'required|numeric|min:0',
         ]);
 
         $validated['slug'] = Str::slug($validated['name']) . '-' . Str::random(6);
@@ -60,7 +68,10 @@ class OrganizationController extends Controller
             abort(403, 'Anda tidak memiliki akses ke pertashop ini.');
         }
 
-        return view('organizations.edit', compact('organization'));
+        // Check if there are any daily reports
+        $hasDailyReports = \App\Models\DailyReport::where('organization_id', $organization->id)->exists();
+
+        return view('organizations.edit', compact('organization', 'hasDailyReports'));
     }
 
     public function update(Request $request, Organization $organization)
@@ -69,6 +80,15 @@ class OrganizationController extends Controller
         if (!$organization->users->contains(Auth::id())) {
             abort(403, 'Anda tidak memiliki akses ke pertashop ini.');
         }
+
+        // Normalize decimal inputs (convert comma to dot)
+        $request->merge([
+            'stok_awal' => str_replace(',', '.', $request->stok_awal ?? ''),
+            'totalisator_awal' => str_replace(',', '.', $request->totalisator_awal ?? ''),
+        ]);
+
+        // Check if there are any daily reports
+        $hasDailyReports = \App\Models\DailyReport::where('organization_id', $organization->id)->exists();
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -79,7 +99,15 @@ class OrganizationController extends Controller
             'harga_jual' => 'required|numeric|min:0',
             'rumus' => 'required|numeric|min:0',
             'hpp_per_liter' => 'required|numeric|min:0',
+            'stok_awal' => 'required|numeric|min:0',
+            'totalisator_awal' => 'required|numeric|min:0',
         ]);
+
+        // Prevent changing initial data if there are daily reports
+        if ($hasDailyReports) {
+            unset($validated['stok_awal']);
+            unset($validated['totalisator_awal']);
+        }
 
         $organization->update($validated);
 

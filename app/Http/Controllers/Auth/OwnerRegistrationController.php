@@ -25,10 +25,18 @@ class OwnerRegistrationController extends Controller
 
     public function register(Request $request)
     {
+        // Normalize decimal inputs (convert comma to dot)
+        $request->merge([
+            'stok_awal' => str_replace(',', '.', $request->stok_awal),
+            'totalisator_awal' => str_replace(',', '.', $request->totalisator_awal),
+        ]);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
+            'stok_awal' => 'required|numeric|min:0',
+            'totalisator_awal' => 'required|numeric|min:0',
             'plan' => 'required|in:trial,monthly,yearly',
             'payment_method' => 'required_if:plan,monthly,yearly|in:manual,duitku',
         ]);
@@ -51,6 +59,8 @@ class OwnerRegistrationController extends Controller
                 'phone' => '',
                 'email' => $validated['email'],
                 'address' => '',
+                'stok_awal' => $validated['stok_awal'],
+                'totalisator_awal' => $validated['totalisator_awal'],
                 'is_active' => true,
             ]);
 
@@ -61,7 +71,7 @@ class OwnerRegistrationController extends Controller
             ]);
 
             // Create trial subscription
-            $trialDays = SystemSetting::get('trial_days', 14);
+            $trialDays = (int) SystemSetting::get('trial_days', 14);
             \App\Models\Subscription::create([
                 'organization_id' => $organization->id,
                 'plan_name' => 'trial',
@@ -115,10 +125,10 @@ class OwnerRegistrationController extends Controller
 
         // Only create paid subscriptions (trial is already created above)
         $price = $plan === 'monthly'
-            ? SystemSetting::get('monthly_price', 100000)
-            : SystemSetting::get('yearly_price', 1000000);
+            ? (int) SystemSetting::get('monthly_price', 100000)
+            : (int) SystemSetting::get('yearly_price', 1000000);
 
-        $duration = $plan === 'monthly' ? 30 : 365;
+        $duration = (int) ($plan === 'monthly' ? 30 : 365);
 
         return Subscription::create([
             'organization_id' => $organization->id,

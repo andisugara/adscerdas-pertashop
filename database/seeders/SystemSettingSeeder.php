@@ -56,6 +56,12 @@ class SystemSettingSeeder extends Seeder
                 'description' => 'Duitku mode: sandbox or production',
             ],
             [
+                'key' => 'duitku_callback_url',
+                'value' => url('/duitku/callback'),
+                'type' => 'string',
+                'description' => 'Duitku callback URL for payment notification',
+            ],
+            [
                 'key' => 'bank_name',
                 'value' => 'Bank BCA',
                 'type' => 'string',

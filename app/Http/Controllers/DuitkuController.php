@@ -12,19 +12,28 @@ class DuitkuController extends Controller
 {
     private function getDuitkuConfig()
     {
+        $isSandbox = SystemSetting::get('duitku_mode', 'sandbox') === 'sandbox';
+
         return [
-            'merchant_code' => SystemSetting::get('duitku_merchant_code'),
-            'api_key' => SystemSetting::get('duitku_api_key'),
-            'callback_url' => SystemSetting::get('duitku_callback_url'),
-            'sandbox' => env('DUITKU_SANDBOX', true),
+            'merchant_code' => SystemSetting::get('duitku_merchant_code', $isSandbox ? 'D12974' : ''),
+            'api_key' => SystemSetting::get('duitku_api_key', $isSandbox ? 'a89d85511f97ec20bd493308249ccaab' : ''),
+            'callback_url' => SystemSetting::get('duitku_callback_url', url('/duitku/callback')),
+            'sandbox' => $isSandbox,
         ];
     }
 
     private function getBaseUrl($config)
     {
         return $config['sandbox']
-            ? 'https://sandbox.duitku.com/webapi/api'
-            : 'https://passport.duitku.com/webapi/api';
+            ? 'https://sandbox.duitku.com/webapi/api/merchant'
+            : 'https://passport.duitku.com/webapi/api/merchant';
+    }
+
+    private function getCheckoutUrl($config)
+    {
+        return $config['sandbox']
+            ? 'https://app-sandbox.duitku.com/lib/js/duitku.js'
+            : 'https://app-prod.duitku.com/lib/js/duitku.js';
     }
 
     public function createPayment(Subscription $subscription)
@@ -40,63 +49,114 @@ class DuitkuController extends Controller
                 ->withErrors(['error' => 'Duitku payment gateway not configured']);
         }
 
-        // Generate unique merchant order ID
+        // Always generate new merchant order ID to avoid signature mismatch
+        // Reset previous duitku data if any
         $merchantOrderId = 'SUB-' . $subscription->id . '-' . time();
 
-        // Prepare payment data
+        $subscription->update([
+            'merchant_order_id' => null,
+            'duitku_reference' => null,
+        ]);
+
+        // Prepare payment data for Duitku
+        $user = auth()->user();
+        $organization = $subscription->organization;
+
         $paymentData = [
             'merchantCode' => $config['merchant_code'],
             'paymentAmount' => (int) $subscription->price,
-            'paymentMethod' => 'VC', // Virtual Account (bisa diganti sesuai kebutuhan)
             'merchantOrderId' => $merchantOrderId,
             'productDetails' => 'Pertashop Subscription - ' . ucfirst($subscription->plan_name),
-            'customerVaName' => auth()->user()->name,
-            'email' => auth()->user()->email,
-            'phoneNumber' => $subscription->organization->phone ?? '08123456789',
+            'customerVaName' => $user->name,
+            'email' => $user->email,
+            'phoneNumber' => $organization->phone ?? '08123456789',
+            'itemDetails' => [
+                [
+                    'name' => ucfirst($subscription->plan_name) . ' Subscription',
+                    'price' => (int) $subscription->price,
+                    'quantity' => 1,
+                ]
+            ],
+            'customerDetail' => [
+                'firstName' => $user->name,
+                'email' => $user->email,
+                'phoneNumber' => $organization->phone ?? '08123456789',
+            ],
             'callbackUrl' => $config['callback_url'],
-            'returnUrl' => route('dashboard'),
+            'returnUrl' => route('subscriptions.index'),
             'expiryPeriod' => 1440, // 24 hours in minutes
         ];
 
-        // Generate signature
-        $signature = hash(
-            'sha256',
-            $config['merchant_code'] .
-                $merchantOrderId .
-                $paymentData['paymentAmount'] .
-                $config['api_key']
-        );
+        // Generate signature for Duitku Inquiry API
+        // Format: MD5(merchantCode + merchantOrderId + paymentAmount + apiKey)
+        $signatureString = $config['merchant_code'] . $merchantOrderId . $paymentData['paymentAmount'] . $config['api_key'];
+        $signature = md5($signatureString);
 
         $paymentData['signature'] = $signature;
 
+        Log::info('Duitku payment request', [
+            'merchantCode' => $config['merchant_code'],
+            'merchantOrderId' => $merchantOrderId,
+            'amount' => $paymentData['paymentAmount'],
+            'callbackUrl' => $config['callback_url'],
+            'sandbox' => $config['sandbox'],
+            'signatureString' => $signatureString,
+            'signature' => $signature,
+        ]);
+
         try {
             // Call Duitku API
-            $response = Http::post($this->getBaseUrl($config) . '/merchant/createinvoice', $paymentData);
+            $response = Http::post($this->getBaseUrl($config) . '/inquiry', $paymentData);
+
+            Log::info('Duitku API response', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
 
             if ($response->successful()) {
                 $result = $response->json();
 
-                if (isset($result['statusCode']) && $result['statusCode'] === '00') {
+                // Duitku inquiry returns reference and paymentUrl directly on success
+                if (isset($result['reference'])) {
                     // Update subscription with Duitku reference
                     $subscription->update([
                         'merchant_order_id' => $merchantOrderId,
-                        'duitku_reference' => $result['reference'] ?? null,
+                        'duitku_reference' => $result['reference'],
                     ]);
 
-                    // Redirect to Duitku payment page
-                    return redirect($result['paymentUrl']);
+                    Log::info('Duitku payment created successfully', [
+                        'reference' => $result['reference'],
+                        'merchantOrderId' => $merchantOrderId,
+                    ]);
+
+                    // Return view with Snap/Pop-up payment
+                    return view('subscription.duitku-snap', [
+                        'subscription' => $subscription,
+                        'reference' => $result['reference'],
+                        'merchantCode' => $config['merchant_code'],
+                        'amount' => $paymentData['paymentAmount'],
+                        'checkoutUrl' => $this->getCheckoutUrl($config),
+                    ]);
                 } else {
-                    Log::error('Duitku payment creation failed', $result);
+                    Log::error('Duitku payment creation failed', [
+                        'result' => $result,
+                    ]);
                     return redirect()->route('subscription.plans')
-                        ->withErrors(['error' => 'Payment creation failed: ' . ($result['statusMessage'] ?? 'Unknown error')]);
+                        ->withErrors(['error' => 'Payment creation failed: ' . ($result['Message'] ?? 'Unknown error')]);
                 }
             } else {
-                Log::error('Duitku API error', ['response' => $response->body()]);
+                Log::error('Duitku API error', [
+                    'status' => $response->status(),
+                    'response' => $response->body(),
+                ]);
                 return redirect()->route('subscription.plans')
-                    ->withErrors(['error' => 'Payment gateway error']);
+                    ->withErrors(['error' => 'Payment gateway error. Please check configuration.']);
             }
         } catch (\Exception $e) {
-            Log::error('Duitku exception', ['message' => $e->getMessage()]);
+            Log::error('Duitku exception', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->route('subscription.plans')
                 ->withErrors(['error' => 'Payment system error: ' . $e->getMessage()]);
         }

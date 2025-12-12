@@ -20,6 +20,8 @@ class Organization extends Model
         'harga_jual',
         'rumus',
         'hpp_per_liter',
+        'stok_awal',
+        'totalisator_awal',
         'is_active',
     ];
 
@@ -28,6 +30,8 @@ class Organization extends Model
         'harga_jual' => 'decimal:2',
         'rumus' => 'decimal:2',
         'hpp_per_liter' => 'decimal:2',
+        'stok_awal' => 'decimal:3',
+        'totalisator_awal' => 'decimal:3',
     ];
 
     /**

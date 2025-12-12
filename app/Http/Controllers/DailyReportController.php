@@ -25,10 +25,11 @@ class DailyReportController extends Controller
 
     public function create(Request $request)
     {
+        $organization = Auth::user()->activeOrganization;
         $shifts = Shift::where('aktif', true)->orderBy('urutan')->get();
         $setting = Setting::first();
 
-        // Get default values from previous report
+        // Get default values from previous report or organization initial data
         $defaultTotalisatorAwal = null;
         $defaultStokAwal = null;
 
@@ -46,6 +47,10 @@ class DailyReportController extends Controller
             if ($previousReport) {
                 $defaultTotalisatorAwal = $previousReport->totalisator_akhir;
                 $defaultStokAwal = $previousReport->stok_akhir_mm;
+            } else {
+                // Jika tidak ada laporan sebelumnya di hari yang sama, gunakan data awal organization
+                $defaultTotalisatorAwal = $organization->totalisator_awal ?? 0;
+                $defaultStokAwal = $organization->stok_awal ?? 0;
             }
         } else {
             // Jika tidak ada request, ambil dari laporan terakhir secara keseluruhan
@@ -56,6 +61,10 @@ class DailyReportController extends Controller
             if ($lastReport) {
                 $defaultTotalisatorAwal = $lastReport->totalisator_akhir;
                 $defaultStokAwal = $lastReport->stok_akhir_mm;
+            } else {
+                // Jika belum ada laporan sama sekali, gunakan data awal organization
+                $defaultTotalisatorAwal = $organization->totalisator_awal ?? 0;
+                $defaultStokAwal = $organization->stok_awal ?? 0;
             }
         }
 
