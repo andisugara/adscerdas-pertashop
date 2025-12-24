@@ -89,7 +89,7 @@ Route::middleware(['auth', 'subscription'])->group(function () {
     Route::resource('tank-additions', TankAdditionController::class);
 
     // Expenses - Owner only
-    Route::resource('expenses', ExpenseController::class)->middleware('role:owner');
+    Route::resource('expenses', ExpenseController::class);
 
     // Deposits - Owner only
     Route::resource('deposits', DepositController::class)->middleware('role:owner');

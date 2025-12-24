@@ -3,7 +3,7 @@
         <div class="card card-flush h-100">
             <div class="card-body">
                 <div class="fw-bold text-gray-600">Total Sales (Liter)</div>
-                <div class="fs-2hx fw-bold text-primary">{{ formatNumber($sales, 3) }}</div>
+                <div class="fs-2hx fw-bold text-primary">{{ formatNumber($salesLiter, 3) }}</div>
             </div>
         </div>
     </div>
@@ -11,7 +11,7 @@
         <div class="card card-flush h-100">
             <div class="card-body">
                 <div class="fw-bold text-gray-600">Margin Kotor</div>
-                <div class="fs-2hx fw-bold text-success">{{ formatRupiah($marginKotor) }}</div>
+                <div class="fs-2hx fw-bold text-success">{{ formatRupiah($margin) }}</div>
             </div>
         </div>
     </div>
@@ -41,7 +41,7 @@
                 <tbody>
                     <tr>
                         <td>HPP / Liter</td>
-                        <td class="text-end">{{ formatRupiah($hppPerLiter) }}</td>
+                        <td class="text-end">{{ formatRupiah($hpp) }}</td>
                     </tr>
                     <tr>
                         <td>HPP Rp</td>

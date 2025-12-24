@@ -45,7 +45,6 @@
                         </div>
 
                         <div class="separator my-10"></div>
-
                         <div class="mb-7">
                             <label class="form-label">Harga per Liter</label>
                             <div class="input-group input-group-solid">
@@ -120,7 +119,8 @@
                                 <tr style="border-top: 1px dashed #000;">
                                     <td style="padding-top: 2mm; font-weight: bold; font-size: 13px;">TOTAL</td>
                                     <td style="text-align: right; padding-top: 2mm; font-weight: bold; font-size: 13px;">Rp
-                                        <span id="preview_total">0</span></td>
+                                        <span id="preview_total">0</span>
+                                    </td>
                                 </tr>
                             </table>
                         </div>

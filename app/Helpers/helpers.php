@@ -67,7 +67,7 @@ if (!function_exists('getMenu')) {
                 'title' => 'Pengeluaran',
                 'route' => 'expenses.index',
                 'icon' => 'ki-wallet',
-                'roles' => ['owner'], // Owner only
+                'roles' => ['owner', 'operator'], // Both can view expenses
             ],
             [
                 'title' => 'Cetak Struk',

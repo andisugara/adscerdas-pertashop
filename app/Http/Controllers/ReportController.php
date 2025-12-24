@@ -90,7 +90,7 @@ class ReportController extends Controller
             $lr = $setting->hpp_per_liter * $ll;
 
             $stokAwalDO = $sal + $tankAdditions;
-            $selisihStok = $sal - $sakl;
+            $selisihStok = $stokAwalDO - $sakl;
 
             $marginHari = (($setting->harga_jual - $setting->hpp_per_liter) * $salesLiter) + $lr;
 
@@ -217,18 +217,19 @@ class ReportController extends Controller
         $tankAdditions = TankAddition::whereBetween('tanggal', [$startDate, $endDate])->sum('jumlah_liter');
         $expenses = Expense::whereBetween('tanggal', [$startDate, $endDate])->sum('jumlah');
 
-        $ta = $reports->min('totalisator_awal') ?? 0;
-        $tak = $reports->max('totalisator_akhir') ?? 0;
+        // Get first and last report properly sorted
+        $firstReport = $reports->sortBy('tanggal')->first();
+        $lastReport = $reports->sortByDesc('tanggal')->first();
+
+        $ta = $firstReport ? $firstReport->totalisator_awal : 0;
+        $tak = $lastReport ? $lastReport->totalisator_akhir : 0;
         $salesLiter = $tak - $ta;
         $salesRp = $salesLiter * $setting->harga_jual;
 
-        $firstReport = $reports->sortBy('tanggal')->first();
-        $lastReport = $reports->sortByDesc('tanggal')->last();
-
-        $sa = $firstReport->stok_awal_mm ?? 0;
+        $sa = $firstReport ? $firstReport->stok_awal_mm : 0;
         $sal = $sa * $setting->rumus;
 
-        $sak = $lastReport->stok_akhir_mm ?? 0;
+        $sak = $lastReport ? $lastReport->stok_akhir_mm : 0;
         $sakl = $sak * $setting->rumus;
 
         $stokTersedia = ($sal + $tankAdditions) - $sakl;
@@ -246,6 +247,22 @@ class ReportController extends Controller
 
         $profit = ($margin - $operasional) - $zakat - $gaji;
 
+        // Perhitungan tambahan untuk view
+        $pembelian = $tankAdditions;
+        $penjualan = $salesLiter;
+        $selisihPenjualan = $pembelian - $penjualan;
+
+        $stokAwal = $sa;
+        $stokAkhir = $sak;
+        $selisihStok = $stokAkhir - $stokAwal;
+        $sisaStokReal = $selisihStok;
+        $sisaStokBeli = $selisihPenjualan;
+        $loses = $sisaStokReal - $sisaStokBeli;
+
+        // Hitung rata-rata penjualan per hari
+        $daysInMonth = $startDate->daysInMonth;
+        $rataRataPenjualanPerHari = $daysInMonth > 0 ? $salesLiter / $daysInMonth : 0;
+
         return [
             'ta' => $ta,
             'tak' => $tak,
@@ -259,11 +276,27 @@ class ReportController extends Controller
             'll' => $ll,
             'lr' => $lr,
             'hpp' => $hpp,
+            'hppRp' => $hpp, // Added for view compatibility
+            'sales' => $salesLiter, // Added for view
+            'liter' => $salesLiter, // Added for view
+            'losesLiter' => $ll, // Added for view
+            'losesRp' => $lr, // Added for view
             'margin' => $margin,
+            'marginKotor' => $margin, // Added for view
             'operasional' => $operasional,
             'zakat' => $zakat,
             'gaji' => $gaji,
             'profit' => $profit,
+            'pembelian' => $pembelian,
+            'penjualan' => $penjualan,
+            'selisihPenjualan' => $selisihPenjualan,
+            'stokAwal' => $stokAwal,
+            'stokAkhir' => $stokAkhir,
+            'selisihStok' => $selisihStok,
+            'sisaStokReal' => $sisaStokReal,
+            'sisaStokBeli' => $sisaStokBeli,
+            'loses' => $loses,
+            'rataRataPenjualanPerHari' => $rataRataPenjualanPerHari,
         ];
     }
 

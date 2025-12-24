@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Organization;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -77,6 +78,11 @@ class SettingController extends Controller
 
         $organizationId = Auth::user()->active_organization_id;
         $setting = Setting::where('organization_id', $organizationId)->findOrFail($id);
+        $organization = Organization::find($organizationId);
+        $organization->harga_jual = $validated['harga_jual'];
+        $organization->rumus = $validated['rumus'];
+        $organization->hpp_per_liter = $validated['hpp_per_liter'];
+        $organization->save();
         $setting->update($validated);
 
         return redirect()->route('settings.index')
