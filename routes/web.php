@@ -18,6 +18,7 @@ use App\Http\Controllers\Auth\OwnerRegistrationController;
 use App\Http\Controllers\DuitkuController;
 use App\Http\Controllers\OperatorController;
 use App\Http\Controllers\ReceiptController;
+use App\Http\Controllers\TankReportController;
 
 // Owner Registration
 Route::get('/register/owner', [OwnerRegistrationController::class, 'showRegistrationForm'])->name('owner.register.form');
@@ -87,6 +88,9 @@ Route::middleware(['auth', 'subscription'])->group(function () {
 
     // Tank Additions - Accessible by both owner and operator
     Route::resource('tank-additions', TankAdditionController::class);
+
+    // Tank Reports (Laporan Tangki) - Owner only for monitoring
+    Route::get('/tank-reports', [TankReportController::class, 'index'])->name('tank-reports.index')->middleware('role:owner');
 
     // Expenses - Owner only
     Route::resource('expenses', ExpenseController::class);

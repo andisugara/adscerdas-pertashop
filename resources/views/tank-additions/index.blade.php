@@ -31,9 +31,10 @@
                     <thead>
                         <tr class="fw-bold fs-6 text-gray-800">
                             <th>Tanggal</th>
+                            <th>Shipment No.</th>
                             <th>Operator</th>
                             <th class="text-end">Jumlah (Liter)</th>
-                            <th>Keterangan</th>
+                            <th>Loses</th>
                             <th class="text-end">Aksi</th>
                         </tr>
                     </thead>
@@ -41,10 +42,23 @@
                         @forelse($tankAdditions as $item)
                             <tr>
                                 <td>{{ $item->tanggal->format('d/m/Y') }}</td>
+                                <td>{{ $item->shipment_no ?? '-' }}</td>
                                 <td>{{ $item->user->name }}</td>
                                 <td class="text-end">{{ formatNumber($item->jumlah_liter) }}</td>
-                                <td>{{ $item->keterangan ?? '-' }}</td>
+                                <td>
+                                    @if($item->stok_awal && $item->stok_akhir)
+                                        <span class="badge {{ $item->loses < 0 ? 'badge-light-danger' : ($item->loses > 0 ? 'badge-light-warning' : 'badge-light-success') }}">
+                                            {{ formatNumber($item->loses) }} L
+                                        </span>
+                                    @else
+                                        <span class="badge badge-light-secondary">N/A</span>
+                                    @endif
+                                </td>
                                 <td class="text-end">
+                                    <a href="{{ route('tank-additions.show', $item->id) }}"
+                                        class="btn btn-sm btn-light-info">
+                                        <i class="ki-outline ki-eye fs-5"></i>
+                                    </a>
                                     <a href="{{ route('tank-additions.edit', $item->id) }}"
                                         class="btn btn-sm btn-light-primary">
                                         <i class="ki-outline ki-pencil fs-5"></i>
@@ -63,7 +77,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center text-gray-600">Tidak ada data</td>
+                                <td colspan="6" class="text-center text-gray-600">Tidak ada data</td>
                             </tr>
                         @endforelse
                     </tbody>

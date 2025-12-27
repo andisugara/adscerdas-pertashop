@@ -24,6 +24,54 @@
                 </div>
 
                 <div class="row mb-6">
+                    <label class="col-lg-3 col-form-label fw-semibold fs-6">No. Polisi</label>
+                    <div class="col-lg-9">
+                        <input type="text" name="no_polisi"
+                            class="form-control @error('no_polisi') is-invalid @enderror"
+                            value="{{ old('no_polisi', $tankAddition->no_polisi) }}" placeholder="Contoh: B 1234 XYZ">
+                        @error('no_polisi')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="row mb-6">
+                    <label class="col-lg-3 col-form-label fw-semibold fs-6">Shipment No.</label>
+                    <div class="col-lg-9">
+                        <input type="text" name="shipment_no"
+                            class="form-control @error('shipment_no') is-invalid @enderror"
+                            value="{{ old('shipment_no', $tankAddition->shipment_no) }}" placeholder="Contoh: SHP-2025-001">
+                        @error('shipment_no')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="row mb-6">
+                    <label class="col-lg-3 col-form-label fw-semibold fs-6">Nama Pengemudi</label>
+                    <div class="col-lg-9">
+                        <input type="text" name="nama_pengemudi"
+                            class="form-control @error('nama_pengemudi') is-invalid @enderror"
+                            value="{{ old('nama_pengemudi', $tankAddition->nama_pengemudi) }}" placeholder="Nama lengkap pengemudi">
+                        @error('nama_pengemudi')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="row mb-6">
+                    <label class="col-lg-3 col-form-label fw-semibold fs-6">No. SO/SA</label>
+                    <div class="col-lg-9">
+                        <input type="text" name="no_so_sa"
+                            class="form-control @error('no_so_sa') is-invalid @enderror"
+                            value="{{ old('no_so_sa', $tankAddition->no_so_sa) }}" placeholder="Contoh: SO-2025-001">
+                        @error('no_so_sa')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="row mb-6">
                     <label class="col-lg-3 col-form-label required fw-semibold fs-6">Jumlah (Liter)</label>
                     <div class="col-lg-9">
                         <input type="text" name="jumlah_liter"
@@ -32,6 +80,34 @@
                             placeholder="Contoh: 2.000,50" required>
                         <div class="form-text">Format: 2.000,50</div>
                         @error('jumlah_liter')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="row mb-6">
+                    <label class="col-lg-3 col-form-label fw-semibold fs-6">Stok Awal (MM)</label>
+                    <div class="col-lg-9">
+                        <input type="text" name="stok_awal"
+                            class="form-control decimal-input @error('stok_awal') is-invalid @enderror"
+                            value="{{ old('stok_awal', $tankAddition->stok_awal ? number_format($tankAddition->stok_awal, 2, ',', '.') : '') }}" 
+                            placeholder="Contoh: 90,50">
+                        <div class="form-text">Stok awal tangki dalam milimeter (MM)</div>
+                        @error('stok_awal')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="row mb-6">
+                    <label class="col-lg-3 col-form-label fw-semibold fs-6">Stok Akhir (MM)</label>
+                    <div class="col-lg-9">
+                        <input type="text" name="stok_akhir"
+                            class="form-control decimal-input @error('stok_akhir') is-invalid @enderror"
+                            value="{{ old('stok_akhir', $tankAddition->stok_akhir ? number_format($tankAddition->stok_akhir, 2, ',', '.') : '') }}" 
+                            placeholder="Contoh: 1.516,00">
+                        <div class="form-text">Stok akhir tangki setelah pengisian dalam milimeter (MM)</div>
+                        @error('stok_akhir')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>

@@ -30,12 +30,27 @@ class TankAdditionController extends Controller
     {
         $validated = $request->validate([
             'tanggal' => 'required|date',
+            'no_polisi' => 'nullable|string|max:50',
+            'shipment_no' => 'nullable|string|max:100',
+            'nama_pengemudi' => 'nullable|string|max:255',
+            'no_so_sa' => 'nullable|string|max:100',
             'jumlah_liter' => 'required|string',
+            'stok_awal' => 'nullable|string',
+            'stok_akhir' => 'nullable|string',
             'keterangan' => 'nullable|string',
         ]);
 
         // Convert format Indonesia ke database format
         $validated['jumlah_liter'] = $this->parseDecimal($validated['jumlah_liter']);
+        
+        if (isset($validated['stok_awal'])) {
+            $validated['stok_awal'] = $this->parseDecimal($validated['stok_awal']);
+        }
+        
+        if (isset($validated['stok_akhir'])) {
+            $validated['stok_akhir'] = $this->parseDecimal($validated['stok_akhir']);
+        }
+        
         $validated['user_id'] = Auth::id();
 
         TankAddition::create($validated);
@@ -60,12 +75,26 @@ class TankAdditionController extends Controller
     {
         $validated = $request->validate([
             'tanggal' => 'required|date',
+            'no_polisi' => 'nullable|string|max:50',
+            'shipment_no' => 'nullable|string|max:100',
+            'nama_pengemudi' => 'nullable|string|max:255',
+            'no_so_sa' => 'nullable|string|max:100',
             'jumlah_liter' => 'required|string',
+            'stok_awal' => 'nullable|string',
+            'stok_akhir' => 'nullable|string',
             'keterangan' => 'nullable|string',
         ]);
 
         // Convert format Indonesia ke database format
         $validated['jumlah_liter'] = $this->parseDecimal($validated['jumlah_liter']);
+        
+        if (isset($validated['stok_awal'])) {
+            $validated['stok_awal'] = $this->parseDecimal($validated['stok_awal']);
+        }
+        
+        if (isset($validated['stok_akhir'])) {
+            $validated['stok_akhir'] = $this->parseDecimal($validated['stok_akhir']);
+        }
 
         $tankAddition = TankAddition::findOrFail($id);
         $tankAddition->update($validated);

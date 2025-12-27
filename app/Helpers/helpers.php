@@ -49,6 +49,11 @@ if (!function_exists('getMenu')) {
                         'route' => 'reports.daily',
                         'roles' => ['owner'],
                     ],
+                    [
+                        'title' => 'Laporan Tangki',
+                        'route' => 'tank-reports.index',
+                        'roles' => ['owner'],
+                    ],
                 ],
             ],
             [
