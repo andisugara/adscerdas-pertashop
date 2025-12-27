@@ -6,6 +6,7 @@ use App\Models\Deposit;
 use App\Models\Shift;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class DepositController extends Controller
 {
@@ -37,11 +38,17 @@ class DepositController extends Controller
         $validated = $request->validate([
             'shift_id' => 'required|exists:shifts,id',
             'tanggal' => 'required|date',
-            'jumlah' => 'required|numeric|min:0',
+            'jumlah' => ['required', 'regex:/^[0-9.,]+$/'],
             'keterangan' => 'nullable|string',
+            'bukti_setoran' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
+        $validated['jumlah'] = $this->parseDecimal($validated['jumlah']);
         $validated['user_id'] = Auth::id();
+
+        if ($request->hasFile('bukti_setoran')) {
+            $validated['bukti_setoran'] = $request->file('bukti_setoran')->store('bukti-setoran', 'public');
+        }
 
         Deposit::create($validated);
 
@@ -78,9 +85,19 @@ class DepositController extends Controller
         $validated = $request->validate([
             'shift_id' => 'required|exists:shifts,id',
             'tanggal' => 'required|date',
-            'jumlah' => 'required|numeric|min:0',
+            'jumlah' => ['required', 'regex:/^[0-9.,]+$/'],
             'keterangan' => 'nullable|string',
+            'bukti_setoran' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
+
+        $validated['jumlah'] = $this->parseDecimal($validated['jumlah']);
+
+        if ($request->hasFile('bukti_setoran')) {
+            if ($deposit->bukti_setoran) {
+                Storage::disk('public')->delete($deposit->bukti_setoran);
+            }
+            $validated['bukti_setoran'] = $request->file('bukti_setoran')->store('bukti-setoran', 'public');
+        }
 
         $deposit->update($validated);
 
@@ -95,6 +112,9 @@ class DepositController extends Controller
         }
 
         $deposit = Deposit::findOrFail($id);
+        if ($deposit->bukti_setoran) {
+            Storage::disk('public')->delete($deposit->bukti_setoran);
+        }
         $deposit->delete();
 
         return redirect()->route('deposits.index')

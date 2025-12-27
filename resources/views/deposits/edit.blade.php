@@ -8,7 +8,7 @@
             <h3 class="card-title">Edit Setoran</h3>
         </div>
         <div class="card-body">
-            <form action="{{ route('deposits.update', $deposit->id) }}" method="POST">
+            <form action="{{ route('deposits.update', $deposit->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 
@@ -65,6 +65,32 @@
                     </div>
                 </div>
 
+                <div class="row mb-6">
+                    <label class="col-lg-3 col-form-label fw-semibold fs-6">Bukti Setoran</label>
+                    <div class="col-lg-9">
+                        <input type="file" name="bukti_setoran"
+                            class="form-control @error('bukti_setoran') is-invalid @enderror" accept="image/*">
+                        <div class="form-text">Opsional. Maks 2MB (JPG/PNG).</div>
+                        @error('bukti_setoran')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+
+                        @if ($deposit->bukti_setoran)
+                            <div class="mt-3">
+                                <div class="fw-semibold mb-2">Bukti saat ini:</div>
+                                <a href="{{ asset('storage/' . $deposit->bukti_setoran) }}" target="_blank" class="btn btn-light-primary btn-sm">
+                                    <i class="ki-outline ki-eye"></i> Lihat Bukti
+                                </a>
+                            </div>
+                        @endif
+
+                        <div id="bukti-preview" class="mt-3 d-none">
+                            <div class="fw-semibold mb-2">Preview:</div>
+                            <img src="#" alt="Preview Bukti Setoran" class="img-fluid rounded border" style="max-height: 240px;" />
+                        </div>
+                    </div>
+                </div>
+
                 <div class="card-footer d-flex justify-content-between py-6 px-0">
                     <a href="{{ route('deposits.index') }}" class="btn btn-light">
                         <i class="ki-outline ki-arrow-left fs-2"></i> Kembali
@@ -114,6 +140,27 @@
                         value = value.replace(',', '.');
                         input.value = value;
                     });
+                });
+            }
+
+            const buktiInput = document.querySelector('input[name="bukti_setoran"]');
+            const buktiPreview = document.querySelector('#bukti-preview');
+            const buktiPreviewImg = buktiPreview ? buktiPreview.querySelector('img') : null;
+
+            if (buktiInput && buktiPreview && buktiPreviewImg) {
+                buktiInput.addEventListener('change', function(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            buktiPreviewImg.src = e.target.result;
+                            buktiPreview.classList.remove('d-none');
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        buktiPreview.classList.add('d-none');
+                        buktiPreviewImg.src = '#';
+                    }
                 });
             }
         });

@@ -16,6 +16,7 @@ class Deposit extends Model
         'shift_id',
         'tanggal',
         'jumlah',
+        'bukti_setoran',
         'keterangan',
     ];
 

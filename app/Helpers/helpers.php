@@ -84,7 +84,7 @@ if (!function_exists('getMenu')) {
                 'title' => 'Setoran',
                 'route' => 'deposits.index',
                 'icon' => 'ki-dollar',
-                'roles' => ['owner'], // Owner only
+                'roles' => ['owner', 'operator'], // Owner and operator
             ],
             [
                 'title' => 'Gaji',

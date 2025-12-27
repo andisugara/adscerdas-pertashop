@@ -35,6 +35,7 @@
                             <th>Operator</th>
                             <th class="text-end">Jumlah</th>
                             <th>Keterangan</th>
+                            <th>Bukti</th>
                             <th class="text-end">Aksi</th>
                         </tr>
                     </thead>
@@ -46,7 +47,20 @@
                                 <td>{{ $deposit->user->name }}</td>
                                 <td class="text-end">{{ formatRupiah($deposit->jumlah) }}</td>
                                 <td>{{ $deposit->keterangan ?? '-' }}</td>
+                                <td>
+                                    @if ($deposit->bukti_setoran)
+                                        <button type="button" class="btn btn-sm btn-light-info" data-bs-toggle="modal"
+                                            data-bs-target="#buktiModal-{{ $deposit->id }}">
+                                            <i class="ki-outline ki-eye"></i> Lihat
+                                        </button>
+                                    @else
+                                        -
+                                    @endif
+                                </td>
                                 <td class="text-end">
+                                    <a href="{{ route('deposits.show', $deposit->id) }}" class="btn btn-sm btn-light-info">
+                                        <i class="ki-outline ki-information fs-5"></i>
+                                    </a>
                                     <a href="{{ route('deposits.edit', $deposit->id) }}"
                                         class="btn btn-sm btn-light-primary">
                                         <i class="ki-outline ki-pencil fs-5"></i>
@@ -65,7 +79,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center text-gray-600">Tidak ada data setoran</td>
+                                <td colspan="7" class="text-center text-gray-600">Tidak ada data setoran</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -73,11 +87,31 @@
                         <tr class="fw-bold">
                             <td colspan="3" class="text-end">Total:</td>
                             <td class="text-end">{{ formatRupiah($deposits->sum('jumlah')) }}</td>
-                            <td colspan="2"></td>
+                            <td colspan="3"></td>
                         </tr>
                     </tfoot>
                 </table>
             </div>
+
+            @foreach ($deposits as $deposit)
+                @if ($deposit->bukti_setoran)
+                    <div class="modal fade" id="buktiModal-{{ $deposit->id }}" tabindex="-1"
+                        aria-labelledby="buktiModalLabel-{{ $deposit->id }}" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="buktiModalLabel-{{ $deposit->id }}">Bukti Setoran</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body text-center">
+                                    <img src="{{ asset('storage/' . $deposit->bukti_setoran) }}" alt="Bukti Setoran"
+                                        class="img-fluid rounded" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            @endforeach
 
             <div class="mt-5">
                 {{ $deposits->links() }}

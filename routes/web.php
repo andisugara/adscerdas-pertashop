@@ -95,8 +95,8 @@ Route::middleware(['auth', 'subscription'])->group(function () {
     // Expenses - Owner only
     Route::resource('expenses', ExpenseController::class);
 
-    // Deposits - Owner only
-    Route::resource('deposits', DepositController::class)->middleware('role:owner');
+    // Deposits - Owner and Operator
+    Route::resource('deposits', DepositController::class);
 
     // Salaries - Owner only
     Route::resource('salaries', SalaryController::class)->middleware('role:owner');
