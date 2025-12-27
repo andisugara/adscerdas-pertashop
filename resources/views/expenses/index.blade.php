@@ -34,6 +34,7 @@
                             <th>Nama Pengeluaran</th>
                             <th class="text-end">Jumlah</th>
                             <th>Keterangan</th>
+                            <th>Bukti</th>
                             <th>Input By</th>
                             <th class="text-end">Aksi</th>
                         </tr>
@@ -45,8 +46,23 @@
                                 <td>{{ $expense->nama_pengeluaran }}</td>
                                 <td class="text-end">{{ formatRupiah($expense->jumlah) }}</td>
                                 <td>{{ $expense->keterangan ?? '-' }}</td>
+                                <td>
+                                    @if($expense->bukti_pengeluaran)
+                                        <a href="#" data-bs-toggle="modal" 
+                                            data-bs-target="#imageModal{{ $expense->id }}"
+                                            class="badge badge-light-success cursor-pointer">
+                                            <i class="ki-outline ki-file-image fs-5"></i> Ada
+                                        </a>
+                                    @else
+                                        <span class="badge badge-light-secondary">-</span>
+                                    @endif
+                                </td>
                                 <td>{{ $expense->user->name }}</td>
                                 <td class="text-end">
+                                    <a href="{{ route('expenses.show', $expense->id) }}"
+                                        class="btn btn-sm btn-light-info">
+                                        <i class="ki-outline ki-eye fs-5"></i>
+                                    </a>
                                     <a href="{{ route('expenses.edit', $expense->id) }}"
                                         class="btn btn-sm btn-light-primary">
                                         <i class="ki-outline ki-pencil fs-5"></i>
@@ -65,13 +81,13 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center text-gray-600">Tidak ada data pengeluaran</td>
+                                <td colspan="7" class="text-center text-gray-600">Tidak ada data pengeluaran</td>
                             </tr>
                         @endforelse
                     </tbody>
                     <tfoot>
                         <tr class="fw-bold">
-                            <td colspan="2" class="text-end">Total:</td>
+                            <td colspan="3" class="text-end">Total:</td>
                             <td class="text-end">{{ formatRupiah($expenses->sum('jumlah')) }}</td>
                             <td colspan="3"></td>
                         </tr>
@@ -84,4 +100,35 @@
             </div>
         </div>
     </div>
+
+    <!-- Modals for each expense image -->
+    @foreach($expenses as $expense)
+        @if($expense->bukti_pengeluaran)
+            <div class="modal fade" id="imageModal{{ $expense->id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Bukti - {{ $expense->nama_pengeluaran }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <img src="{{ Storage::url($expense->bukti_pengeluaran) }}" 
+                                alt="Bukti Pengeluaran" class="img-fluid rounded">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Tutup</button>
+                            <a href="{{ route('expenses.show', $expense->id) }}" class="btn btn-info">
+                                <i class="ki-outline ki-eye fs-2"></i> Lihat Detail
+                            </a>
+                            <a href="{{ Storage::url($expense->bukti_pengeluaran) }}" 
+                                class="btn btn-primary" 
+                                download="bukti-pengeluaran-{{ $expense->id }}.jpg">
+                                <i class="ki-outline ki-download-2 fs-2"></i> Download
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+    @endforeach
 @endsection

@@ -17,6 +17,7 @@ class Expense extends Model
         'nama_pengeluaran',
         'jumlah',
         'keterangan',
+        'bukti_pengeluaran',
     ];
 
     protected $casts = [

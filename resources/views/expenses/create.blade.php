@@ -8,7 +8,7 @@
             <h3 class="card-title">Tambah Pengeluaran</h3>
         </div>
         <div class="card-body">
-            <form action="{{ route('expenses.store') }}" method="POST">
+            <form action="{{ route('expenses.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
                 <div class="row mb-6">
@@ -53,6 +53,25 @@
                         <textarea name="keterangan" rows="3" class="form-control @error('keterangan') is-invalid @enderror"
                             placeholder="Keterangan tambahan (opsional)">{{ old('keterangan') }}</textarea>
                         @error('keterangan')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="row mb-6">
+                    <label class="col-lg-3 col-form-label fw-semibold fs-6">Bukti Pengeluaran</label>
+                    <div class="col-lg-9">
+                        <input type="file" name="bukti_pengeluaran" accept="image/*"
+                            class="form-control @error('bukti_pengeluaran') is-invalid @enderror" id="bukti_input_create">
+                        <div class="form-text">Format: JPG, PNG, GIF (Max 2MB)</div>
+                        <div id="preview_create" class="mt-3" style="display: none;">
+                            <small class="text-muted d-block mb-2">Preview:</small>
+                            <img id="preview_img_create" src="" alt="Preview" class="img-fluid rounded" style="max-height: 250px; max-width: 300px;">
+                        </div>
+                        <small class="text-muted d-block mt-2">
+                            <i class="ki-outline ki-information-5"></i> Upload foto/scan bukti pengeluaran (struk, invoice, dll)
+                        </small>
+                        @error('bukti_pengeluaran')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
@@ -107,6 +126,22 @@
                         value = value.replace(',', '.');
                         input.value = value;
                     });
+                });
+            }
+
+            // Image preview for create
+            const buktiInputCreate = document.getElementById('bukti_input_create');
+            if (buktiInputCreate) {
+                buktiInputCreate.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            document.getElementById('preview_img_create').src = event.target.result;
+                            document.getElementById('preview_create').style.display = 'block';
+                        };
+                        reader.readAsDataURL(file);
+                    }
                 });
             }
         });

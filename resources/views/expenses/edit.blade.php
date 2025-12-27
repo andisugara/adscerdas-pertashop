@@ -8,7 +8,7 @@
             <h3 class="card-title">Edit Pengeluaran</h3>
         </div>
         <div class="card-body">
-            <form action="{{ route('expenses.update', $expense->id) }}" method="POST">
+            <form action="{{ route('expenses.update', $expense->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 
@@ -55,6 +55,39 @@
                         @error('keterangan')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+                    </div>
+                </div>
+
+                <div class="row mb-6">
+                    <label class="col-lg-3 col-form-label fw-semibold fs-6">Bukti Pengeluaran</label>
+                    <div class="col-lg-9">
+                        @if($expense->bukti_pengeluaran)
+                            <div class="mb-3">
+                                <div class="text-muted mb-2">Bukti saat ini:</div>
+                                <div class="image-preview border rounded p-2" style="max-width: 300px;">
+                                    <img src="{{ Storage::url($expense->bukti_pengeluaran) }}" alt="Bukti Pengeluaran" 
+                                        class="img-fluid rounded" style="max-height: 250px;">
+                                </div>
+                                <label class="form-check form-check-custom form-check-solid mt-3">
+                                    <input class="form-check-input" type="checkbox" name="delete_image" value="1">
+                                    <span class="form-check-label fw-semibold">Hapus bukti ini</span>
+                                </label>
+                            </div>
+                        @endif
+                        
+                        <div>
+                            <label class="form-label fw-semibold">Upload bukti pengeluaran baru</label>
+                            <input type="file" name="bukti_pengeluaran" accept="image/*"
+                                class="form-control @error('bukti_pengeluaran') is-invalid @enderror" id="bukti_input">
+                            <div class="form-text">Format: JPG, PNG, GIF (Max 2MB)</div>
+                            <div id="preview" class="mt-3" style="display: none;">
+                                <small class="text-muted">Preview:</small>
+                                <img id="preview_img" src="" alt="Preview" class="img-fluid rounded" style="max-height: 250px; max-width: 300px;">
+                            </div>
+                            @error('bukti_pengeluaran')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
                     </div>
                 </div>
 
@@ -107,6 +140,22 @@
                         value = value.replace(',', '.');
                         input.value = value;
                     });
+                });
+            }
+
+            // Image preview
+            const buktiInput = document.getElementById('bukti_input');
+            if (buktiInput) {
+                buktiInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            document.getElementById('preview_img').src = event.target.result;
+                            document.getElementById('preview').style.display = 'block';
+                        };
+                        reader.readAsDataURL(file);
+                    }
                 });
             }
         });
